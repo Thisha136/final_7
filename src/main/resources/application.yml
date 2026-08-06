@@ -18,12 +18,14 @@ server:
 
 gemini:
   api:
-    key: gm_k
+    key:g_k
+
 
 
 groq:
   api:
-    key: gr_k
+    key: q_k
+
 
 
 qdrant:

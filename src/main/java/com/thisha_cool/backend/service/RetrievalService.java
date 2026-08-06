@@ -1,42 +1,75 @@
 package com.thisha_cool.backend.service;
-import java.util.Objects;
+
+import com.thisha_cool.backend.dto.qdrant.response.SearchPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.thisha_cool.backend.dto.qdrant.response.SearchPoint;
-import java.util.*;
 
+import java.util.List;
+import java.util.Objects;
 
 @Service
 public class RetrievalService {
 
     @Autowired
     private EmbeddingService embeddingService;
+
     @Autowired
     private GroqService groqService;
+
     @Autowired
     private QdrantService qdrantService;
 
+    // -----------------------------
+    // Simple Chat (No Memory)
+    // -----------------------------
     public String search(String question) {
+
+        return search(question, "");
+    }
+
+    // -----------------------------
+    // Chat With Conversation Memory
+    // -----------------------------
+    public String search(String question, String conversationHistory) {
+
+        // Build retrieval query
+        String retrievalQuery = question;
+
+        if (conversationHistory != null &&
+                !conversationHistory.isBlank()) {
+
+            retrievalQuery =
+                    conversationHistory
+                            + "\nCurrent Question: "
+                            + question;
+        }
+
+        System.out.println("========== RETRIEVAL QUERY ==========");
+        System.out.println(retrievalQuery);
 
         // Generate embedding
         List<Float> embedding =
-                embeddingService.generateEmbedding(question);
+                embeddingService.generateEmbedding(retrievalQuery);
 
         // Search in Qdrant
         List<SearchPoint> searchResults =
                 qdrantService.searchEmbedding(embedding);
+
         String latestUploadedAt = searchResults.stream()
                 .map(point -> point.getPayload().getUploadedAt())
                 .filter(Objects::nonNull)
                 .max(String::compareTo)
                 .orElse("");
-        List<SearchPoint> latestResults = searchResults.stream()
-                .filter(point ->
-                        point.getPayload().getUploadedAt().equals(latestUploadedAt))
-                .toList();
 
+        List<SearchPoint> latestResults =
+                searchResults.stream()
+                        .filter(point ->
+                                point.getPayload()
+                                        .getUploadedAt()
+                                        .equals(latestUploadedAt))
+                        .toList();
 
-        // Build context from retrieved chunks
+        // Build Context
         StringBuilder context = new StringBuilder();
 
         int count = Math.min(3, latestResults.size());
@@ -52,42 +85,66 @@ public class RetrievalService {
             context.append("Page: ")
                     .append(point.getPayload().getPageNumber())
                     .append("\n");
+
             context.append("Paragraph: ")
                     .append(point.getPayload().getParagraph())
                     .append("\n");
-            context.append("Confidence: ")
-                    .append(String.format("%.2f%%", point.getScore() * 100))
-                    .append("\n");
+
             context.append("Content:\n")
                     .append(point.getPayload().getText())
                     .append("\n\n");
         }
 
-// Prompt Groq
+        // Prompt
         String prompt =
                 """
                 You are an enterprise document assistant.
-        
-                Answer ONLY using the information provided in the Context.
-        
-                If the answer is not explicitly available in the Context, reply exactly:
-                "I couldn't find this information in the uploaded documents."
-        
-                Do not use outside knowledge.
-                Do not guess or invent information.
-        
-                Context:
+
+                The previous user questions are provided only to understand what
+                the current question refers to.
+
+                NEVER answer from previous questions.
+
+                ALWAYS answer ONLY from the Retrieved Document Context.
+
+                If the current question is a follow-up such as:
+
+                - Explain it
+                - Tell me more
+                - What does that mean
+                - Which section
+                - Continue
+
+                use the Previous User Questions only to resolve the reference.
+
+                If the Retrieved Document Context does not contain the answer,
+                reply exactly:
+
+                I couldn't find this information in the uploaded documents.
+
+                Previous User Questions:
                 %s
-        
-                Question:
+
+                Retrieved Document Context:
+                %s
+
+                Current User Question:
                 %s
                 """
-                        .formatted(context.toString(), question);
-                        
+                        .formatted(
+                                conversationHistory,
+                                context.toString(),
+                                question
+                        );
 
-        String answer = groqService.askGroq(prompt);
+        System.out.println("========== PROMPT ==========");
+        System.out.println(prompt);
 
-// Append citations from backend
+        String answer =
+                groqService.askGroq(prompt);
+
+        // Append Sources
+
         answer += "\n\nSources:\n";
 
         int count1 = Math.min(3, searchResults.size());
@@ -97,15 +154,24 @@ public class RetrievalService {
             SearchPoint point = searchResults.get(i);
 
             answer += "\n" + (i + 1) + ".\n";
-            answer += "File Name: " + point.getPayload().getFileName() + "\n";
-            answer += "Page Number: " + point.getPayload().getPageNumber() + "\n";
-            answer += "Paragraph: " + point.getPayload().getParagraph() + "\n";
+            answer += "File Name: "
+                    + point.getPayload().getFileName()
+                    + "\n";
+
+            answer += "Page Number: "
+                    + point.getPayload().getPageNumber()
+                    + "\n";
+
+            answer += "Paragraph: "
+                    + point.getPayload().getParagraph()
+                    + "\n";
+
             answer += "Confidence: "
-                    + String.format("%.2f%%", point.getScore() * 100)
+                    + String.format("%.2f%%",
+                    point.getScore() * 100)
                     + "\n";
         }
 
         return answer;
     }
-
 }
