@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/enterprise_rag
+    username: postgres
+    password: 7777
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 9000
+
+
+gemini:
+  api:
+    key: key_gem
+
+groq:
+  api:
+    key: key_groq
+
+qdrant:
+  url: http://localhost:6333
+  collection: document_embeddings
+
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
