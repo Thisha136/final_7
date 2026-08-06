@@ -99,6 +99,7 @@ public class QdrantService {
             String fileName,
             Integer pageNumber,
             String paragraph,
+            String uploadedAt,
             List<Float> embedding) {
 
         String url = qdrantUrl +
@@ -122,10 +123,11 @@ public class QdrantService {
 
         // ✅ SAFE PAYLOAD
         Payload payload = Payload.builder()
-                .text(text != null ? text : "")
-                .fileName(fileName != null ? fileName : "")
-                .pageNumber(pageNumber != null ? pageNumber : 0)
-                .paragraph(paragraph != null ? paragraph : "")
+                .text(text)
+                .fileName(fileName)
+                .pageNumber(pageNumber)
+                .paragraph(paragraph)
+                .uploadedAt(uploadedAt)
                 .build();
 
         Point point = Point.builder()

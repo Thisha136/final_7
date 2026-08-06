@@ -1,4 +1,5 @@
 package com.thisha_cool.backend.controller;
+import com.thisha_cool.backend.dto.ChunkMetadata;
 import org.springframework.web.bind.annotation.*;
 import com.thisha_cool.backend.service.DocumentService;
 import com.thisha_cool.backend.service.DocumentProcessingService;
@@ -29,9 +30,8 @@ public class AdminController {
 
             String path = documentService.uploadFile(file);
 
-            String text = documentService.extractText(path);
-
-            List<String> chunks = chunkService.createChunks(text);
+            List<ChunkMetadata> chunks =
+                    documentService.extractChunksWithPageNumbers(path);
 
             documentService.saveDocumentAndChunks(
                     file.getOriginalFilename(),

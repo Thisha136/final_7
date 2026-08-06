@@ -1,5 +1,5 @@
 package com.thisha_cool.backend.service;
-
+import com.thisha_cool.backend.dto.ChunkMetadata;
 import com.thisha_cool.backend.entity.Document;
 import com.thisha_cool.backend.entity.DocumentChunk;
 import com.thisha_cool.backend.repository.DocumentRepository;
@@ -7,15 +7,18 @@ import com.thisha_cool.backend.repository.DocumentChunkRepository;
 import org.apache.tika.Tika;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class DocumentService {
-
+    private final ChunkService chunkService;
     private final DocumentRepository documentRepository;
     private final DocumentChunkRepository chunkRepository;
     private final EmbeddingService embeddingService;
@@ -30,18 +33,19 @@ public class DocumentService {
             DocumentRepository documentRepository,
             DocumentChunkRepository chunkRepository,
             EmbeddingService embeddingService,
-            QdrantService qdrantService
+            QdrantService qdrantService,
+            ChunkService chunkService
     ) {
         this.documentRepository = documentRepository;
         this.chunkRepository = chunkRepository;
         this.embeddingService = embeddingService;
         this.qdrantService = qdrantService;
+        this.chunkService = chunkService;
     }
 
     public void saveDocumentAndChunks(String fileName,
                                       String filePath,
-                                      List<String> chunks) {
-
+                                      List<ChunkMetadata> chunks){
         Document document = Document.builder()
                 .fileName(fileName)
                 .filePath(filePath)
@@ -52,35 +56,71 @@ public class DocumentService {
 
         int chunkNumber = 1;
 
-        for (String chunk : chunks) {
+        for (ChunkMetadata chunk : chunks) {
 
             // Save chunk in PostgreSQL
             DocumentChunk documentChunk = DocumentChunk.builder()
                     .document(document)
                     .chunkNumber(chunkNumber++)
-                    .chunkText(chunk)
+                    .chunkText(chunk.getText())
                     .build();
 
             DocumentChunk savedChunk = chunkRepository.save(documentChunk);
 
             // Generate embedding
             List<Float> embedding =
-                    embeddingService.generateEmbedding(chunk);
+                    embeddingService.generateEmbedding(chunk.getText());
 
             // Store embedding in Qdrant
             String response = qdrantService.storeEmbedding(
                     savedChunk.getId().intValue(),
-                    savedChunk.getChunkText(),
+                    chunk.getText(),
                     savedChunk.getDocument().getFileName(),
-                    1,      // TODO: Extract actual page number later
-                    "",     // TODO: Extract paragraph metadata later
+                    chunk.getPageNumber(),
+                    String.valueOf(chunk.getParagraphNumber()),
+                    savedChunk.getDocument().getUploadedAt().toString(),
                     embedding
             );
 
             System.out.println("Qdrant response: " + response);
         }
     }
+    public List<ChunkMetadata> extractChunksWithPageNumbers(String filePath) throws Exception {
 
+        List<ChunkMetadata> allChunks = new ArrayList<>();
+
+        File file = new File(filePath);
+
+        try (PDDocument document = Loader.loadPDF(file)) {
+
+
+
+            int totalPages = document.getNumberOfPages();
+
+            for (int page = 1; page <= totalPages; page++) {
+                PDFTextStripper stripper = new PDFTextStripper();
+                stripper.setStartPage(page);
+                stripper.setEndPage(page);
+
+                String pageText = stripper.getText(document);
+
+                List<ChunkMetadata> pageChunks =
+                        chunkService.createChunks(pageText);
+
+                int paragraph = 1;
+
+                for (ChunkMetadata chunk : pageChunks) {
+
+                    chunk.setPageNumber(page);
+                    chunk.setParagraphNumber(paragraph++);
+
+                    allChunks.add(chunk);
+                }
+            }
+        }
+
+        return allChunks;
+    }
     public String uploadFile(MultipartFile file) throws IOException {
 
         File directory = new File(UPLOAD_DIR);

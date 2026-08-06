@@ -18,11 +18,13 @@ server:
 
 gemini:
   api:
-    key: key_gem
+    key: gm_k
+
 
 groq:
   api:
-    key: key_groq
+    key: gr_k
+
 
 qdrant:
   url: http://localhost:6333

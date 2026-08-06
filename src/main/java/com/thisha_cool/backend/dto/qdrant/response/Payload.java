@@ -12,4 +12,5 @@ public class Payload {
     private String fileName;
     private Integer pageNumber;
     private String paragraph;
+    private String uploadedAt;
 }
