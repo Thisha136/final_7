@@ -36,7 +36,8 @@ public class ChatMessageService {
                 .askedAt(LocalDateTime.now())
                 .conversation(conversation)
                 .build();
-
+        conversation.setUpdatedAt(LocalDateTime.now());
+        conversationService.save(conversation);
         return chatMessageRepository.save(message);
     }
 
@@ -61,6 +62,13 @@ public class ChatMessageService {
                         .build())
                 .toList();
     }
+    public String buildConversationContextByShareId(String shareId) {
+
+        Conversation conversation =
+                conversationService.getConversationByShareId(shareId);
+
+        return buildConversationContext(conversation.getId());
+    }
     public String buildConversationContext(Long conversationId) {
 
         List<ChatMessage> messages =
@@ -68,16 +76,30 @@ public class ChatMessageService {
 
         StringBuilder context = new StringBuilder();
 
+        // Keep only the last 5 messages
         int start = Math.max(0, messages.size() - 5);
 
         for (int i = start; i < messages.size(); i++) {
 
+            ChatMessage message = messages.get(i);
+
             context.append("User: ")
-                    .append(messages.get(i).getQuestion())
+                    .append(message.getQuestion())
                     .append("\n");
+
+            context.append("Assistant: ")
+                    .append(message.getAnswer())
+                    .append("\n\n");
         }
 
         return context.toString();
+    }
+    public List<ChatMessageResponse> getSharedConversation(String shareId) {
+
+        Conversation conversation =
+                conversationService.getConversationByShareId(shareId);
+
+        return getConversationMessages(conversation.getId());
     }
     // Delete all messages in one conversation
     public void deleteConversationMessages(Long conversationId) {

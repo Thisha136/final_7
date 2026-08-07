@@ -15,7 +15,12 @@ public class ChatMessageController {
     public ChatMessageController(ChatMessageService chatMessageService) {
         this.chatMessageService = chatMessageService;
     }
+    @GetMapping("/share/{shareId}")
+    public List<ChatMessageResponse> getSharedConversation(
+            @PathVariable String shareId) {
 
+        return chatMessageService.getSharedConversation(shareId);
+    }
     // Get all messages of a conversation
     @GetMapping("/{conversationId}/messages")
     public List<ChatMessageResponse> getConversationMessages(

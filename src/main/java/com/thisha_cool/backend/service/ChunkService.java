@@ -9,7 +9,7 @@ import java.util.List;
 @Service
 public class ChunkService {
 
-    private static final int CHUNK_SIZE = 800;
+    private static final int CHUNK_SIZE = 500;
     private static final int OVERLAP = 150;
 
     public List<ChunkMetadata> createChunks(String text) {
@@ -21,7 +21,6 @@ public class ChunkService {
         }
 
         int paragraphNumber = 1;
-
         int start = 0;
 
         while (start < text.length()) {
@@ -30,7 +29,9 @@ public class ChunkService {
 
             // Try to end at a newline
             if (end < text.length()) {
+
                 int newline = text.lastIndexOf('\n', end);
+
                 if (newline > start + 200) {
                     end = newline;
                 }
@@ -38,17 +39,28 @@ public class ChunkService {
 
             String chunk = text.substring(start, end).trim();
 
-            chunks.add(
-                    ChunkMetadata.builder()
-                            .text(chunk)
-                            .paragraphNumber(paragraphNumber++)
-                            .build()
-            );
+            if (!chunk.isEmpty()) {
 
+                chunks.add(
+                        ChunkMetadata.builder()
+                                .text(chunk)
+                                .paragraphNumber(paragraphNumber++)
+                                .build()
+                );
+            }
+
+            // IMPORTANT:
+            // If this is the final chunk, stop.
+            if (end >= text.length()) {
+                break;
+            }
+
+            // Move forward while maintaining overlap
             start = end - OVERLAP;
 
-            if (start < 0) {
-                start = 0;
+            // Safety check to guarantee progress
+            if (start <= 0) {
+                start = end;
             }
         }
 

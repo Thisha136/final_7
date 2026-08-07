@@ -30,7 +30,13 @@ public class ConversationController {
 
         return conversationService.getAllConversations();
     }
+    // Search Conversations
+    @GetMapping("/search")
+    public List<Conversation> searchConversationHistory(
+            @RequestParam String keyword) {
 
+        return conversationService.searchConversationHistory(keyword);
+    }
     // Get One Conversation
     @GetMapping("/{id}")
     public Conversation getConversation(
@@ -47,7 +53,14 @@ public class ConversationController {
 
         return conversationService.renameConversation(id, title);
     }
+    @PutMapping("/{id}/share")
+    public String shareConversation(@PathVariable Long id) {
 
+        Conversation conversation =
+                conversationService.enableSharing(id);
+
+        return "http://localhost:3000/share/" + conversation.getShareId();
+    }
     // Delete Conversation
     @DeleteMapping("/{id}")
     public String deleteConversation(

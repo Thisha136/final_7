@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "conversations")
+@Table(name="conversations")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,4 +23,10 @@ public class Conversation {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    @Column(unique = true)
+    private String shareId;
+
+    @Builder.Default
+    private Boolean isPublic = false;
 }
