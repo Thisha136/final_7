@@ -1,0 +1,273 @@
+/* =========================================
+   GLOBAL RESET
+========================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+    font-family: "Poppins", sans-serif;
+}
+
+
+/* =========================================
+   BODY
+========================================= */
+
+body {
+    min-height: 100vh;
+
+    background:
+        linear-gradient(
+            135deg,
+            #141E30,
+            #243B55
+        );
+
+    color: white;
+}
+
+
+/* =========================================
+   LOGIN CONTAINER
+========================================= */
+
+.login-container {
+    width: 100%;
+    min-height: 100vh;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+}
+
+
+/* =========================================
+   GLASS CARD
+========================================= */
+
+.glass-card {
+    width: 400px;
+
+    padding: 40px;
+
+    border-radius: 20px;
+
+    background:
+        rgba(255, 255, 255, 0.08);
+
+    backdrop-filter: blur(15px);
+
+    -webkit-backdrop-filter: blur(15px);
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.3);
+
+    text-align: center;
+
+    color: white;
+}
+
+
+/* =========================================
+   TITLE
+========================================= */
+
+.glass-card h1 {
+    margin-bottom: 10px;
+
+    font-size: 32px;
+
+    font-weight: 700;
+
+    letter-spacing: -0.5px;
+}
+
+
+/* =========================================
+   DESCRIPTION
+========================================= */
+
+.glass-card p {
+    margin-bottom: 30px;
+
+    color: #dddddd;
+
+    font-size: 15px;
+
+    line-height: 1.5;
+}
+
+
+/* =========================================
+   INPUT
+========================================= */
+
+.glass-card input {
+    width: 100%;
+
+    padding: 15px;
+
+    margin-bottom: 20px;
+
+    border: 1px solid transparent;
+
+    outline: none;
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, 0.15);
+
+    color: white;
+
+    font-size: 16px;
+
+    transition: 0.25s ease;
+}
+
+
+/* INPUT FOCUS */
+
+.glass-card input:focus {
+    border-color: rgba(0, 201, 255, 0.7);
+
+    background:
+        rgba(255, 255, 255, 0.20);
+
+    box-shadow:
+        0 0 0 3px rgba(0, 201, 255, 0.10);
+}
+
+
+/* PLACEHOLDER */
+
+.glass-card input::placeholder {
+    color: #dddddd;
+}
+
+
+/* =========================================
+   LOGIN BUTTON
+========================================= */
+
+.glass-card button {
+    width: 100%;
+
+    padding: 15px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background:
+        linear-gradient(
+            to right,
+            #00C9FF,
+            #92FE9D
+        );
+
+    color: #111827;
+
+    font-size: 17px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: all 0.3s ease;
+}
+
+
+/* BUTTON HOVER */
+
+.glass-card button:hover {
+    transform: scale(1.03);
+
+    box-shadow:
+        0 8px 20px rgba(0, 201, 255, 0.25);
+}
+
+
+/* BUTTON CLICK */
+
+.glass-card button:active {
+    transform: scale(0.98);
+}
+
+
+/* =========================================
+   REGISTER TEXT
+========================================= */
+
+.register-text {
+    margin-top: 22px !important;
+
+    margin-bottom: 0 !important;
+
+    color: #dddddd;
+
+    font-size: 14px !important;
+}
+
+
+/* REGISTER LINK */
+
+.register-text a {
+    color: #00C9FF;
+
+    text-decoration: none;
+
+    font-weight: 600;
+
+    transition: 0.2s ease;
+}
+
+
+.register-text a:hover {
+    color: #92FE9D;
+
+    text-decoration: underline;
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 500px) {
+
+    .login-container {
+        padding: 18px;
+    }
+
+    .glass-card {
+        width: 100%;
+
+        max-width: 400px;
+
+        padding: 30px 24px;
+    }
+
+    .glass-card h1 {
+        font-size: 28px;
+    }
+
+    .glass-card input {
+        font-size: 15px;
+
+        padding: 14px;
+    }
+
+    .glass-card button {
+        font-size: 16px;
+
+        padding: 14px;
+    }
+}
